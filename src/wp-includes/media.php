@@ -2501,10 +2501,6 @@ function wp_video_shortcode( $attr, $content = '' ) {
 			}
 		}
 
-		if ( $is_vimeo ) {
-			wp_enqueue_script( 'froogaloop' );
-		}
-
 		$primary = true;
 		array_unshift( $default_types, 'src' );
 	} else {

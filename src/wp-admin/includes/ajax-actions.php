@@ -3144,7 +3144,7 @@ function wp_ajax_parse_media_shortcode() {
 
 		wp_print_scripts( 'wp-playlist' );
 	} else {
-		wp_print_scripts( array( 'froogaloop', 'wp-mediaelement' ) );
+		wp_print_scripts( array( 'wp-mediaelement' ) );
 	}
 
 	wp_send_json_success( array(
