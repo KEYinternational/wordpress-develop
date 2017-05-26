@@ -4,7 +4,7 @@
 	window.wp = window.wp || {};
 
 	function wpMediaElement() {
-        var settings = {};
+		var settings = {};
 
 		/**
 		 * Initialize media elements.
@@ -18,11 +18,11 @@
 			if ( typeof _wpmejsSettings !== 'undefined' ) {
 				settings = $.extend( true, {}, _wpmejsSettings );
 			}
-            settings.classPrefix = 'mejs-';
+			settings.classPrefix = 'mejs-';
 			settings.success = settings.success || function (mejs) {
 				var autoplay, loop;
 
-				if ( ~mejs.rendererName.indexOf('flash') ) {
+				if ( -1 !== mejs.rendererName.indexOf( 'flash' ) ) {
 					autoplay = mejs.attributes.autoplay && 'false' !== mejs.attributes.autoplay;
 					loop = mejs.attributes.loop && 'false' !== mejs.attributes.loop;
 
