@@ -1,4 +1,4 @@
-/* global mejs, _wpmejsSettings */
+/* global _wpmejsSettings */
 (function( window, $ ) {
 
 	window.wp = window.wp || {};
@@ -13,6 +13,8 @@
 		 * processed again.
 		 *
 		 * @since 4.4.0
+		 *
+		 * @returns {void}
 		 */
 		function initialize() {
 			if ( typeof _wpmejsSettings !== 'undefined' ) {
@@ -26,13 +28,17 @@
 					autoplay = mejs.attributes.autoplay && 'false' !== mejs.attributes.autoplay;
 					loop = mejs.attributes.loop && 'false' !== mejs.attributes.loop;
 
-					autoplay && mejs.addEventListener( 'canplay', function () {
-						mejs.play();
-					}, false );
+					if ( autoplay ) {
+						mejs.addEventListener( 'canplay', function() {
+							mejs.play();
+						}, false );
+					}
 
-					loop && mejs.addEventListener( 'ended', function () {
-						mejs.play();
-					}, false );
+					if ( loop ) {
+						mejs.addEventListener( 'ended', function() {
+							mejs.play();
+						}, false );
+					}
 				}
 			};
 
