@@ -16,6 +16,7 @@ if ( ! wp_is_mobile() ) {
 	wp_localize_script( 'mediaelement', '_wpmejsSettings', array(
 		'pluginPath'        => includes_url( 'js/mediaelement/', 'relative' ),
 		'classPrefix'       => 'mejs-',
+		'stretching'        => 'responsive',
 		'pauseOtherPlayers' => '',
 	) );
 }
