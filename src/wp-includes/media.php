@@ -2501,6 +2501,10 @@ function wp_video_shortcode( $attr, $content = '' ) {
 			}
 		}
 
+		if ( $is_vimeo ) {
+		    wp_enqueue_script( 'froogaloop' );
+		}
+
 		$primary = true;
 		array_unshift( $default_types, 'src' );
 	} else {
@@ -2540,6 +2544,7 @@ function wp_video_shortcode( $attr, $content = '' ) {
 	if ( 'mediaelement' === $library && did_action( 'init' ) ) {
 		wp_enqueue_style( 'wp-mediaelement' );
 		wp_enqueue_script( 'wp-mediaelement' );
+		wp_enqueue_script( 'mediaelement-vimeo' );
 	}
 
 	/**
@@ -3923,7 +3928,7 @@ function attachment_url_to_postid( $url ) {
  */
 function wpview_media_sandbox_styles() {
  	$version = 'ver=' . get_bloginfo( 'version' );
- 	$mediaelement = includes_url( "js/mediaelement/mediaelementplayer.min.css?$version" );
+ 	$mediaelement = includes_url( "js/mediaelement/mediaelementplayer-legacy.min.css?$version" );
  	$wpmediaelement = includes_url( "js/mediaelement/wp-mediaelement.css?$version" );
 
 	return array( $mediaelement, $wpmediaelement );

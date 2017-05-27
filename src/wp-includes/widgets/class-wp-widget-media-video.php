@@ -172,6 +172,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 		/** This filter is documented in wp-includes/media.php */
 		if ( 'mediaelement' === apply_filters( 'wp_video_shortcode_library', 'mediaelement' ) ) {
 			wp_enqueue_style( 'wp-mediaelement' );
+			wp_enqueue_script( 'mediaelement-vimeo' );
 			wp_enqueue_script( 'wp-mediaelement' );
 		}
 	}
