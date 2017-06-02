@@ -2502,7 +2502,7 @@ function wp_video_shortcode( $attr, $content = '' ) {
 		}
 
 		if ( $is_vimeo ) {
-		    wp_enqueue_script( 'froogaloop' );
+		    wp_enqueue_script( 'mediaelement-vimeo' );
 		}
 
 		$primary = true;
