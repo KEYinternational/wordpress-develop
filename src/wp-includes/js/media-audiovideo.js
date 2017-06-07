@@ -795,7 +795,7 @@ MediaDetails = AttachmentDisplay.extend({
 	 * @global MediaElementPlayer
 	 */
 	setPlayer : function() {
-		var baseSettings, src;
+		var src;
 
 		console.log(this.media);
 

@@ -90,7 +90,7 @@ MediaDetails = AttachmentDisplay.extend({
 	 * @global MediaElementPlayer
 	 */
 	setPlayer : function() {
-		var baseSettings, src;
+		var src;
 
 		if ( this.players.length || ! this.media || this.scriptXhr ) {
 			return;
