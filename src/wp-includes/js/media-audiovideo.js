@@ -797,8 +797,6 @@ MediaDetails = AttachmentDisplay.extend({
 	setPlayer : function() {
 		var src;
 
-		console.log(this.media);
-
 		if ( this.players.length || ! this.media || this.scriptXhr ) {
 			return;
 		}
