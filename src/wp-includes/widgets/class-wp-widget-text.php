@@ -53,6 +53,114 @@ class WP_Widget_Text extends WP_Widget {
 	}
 
 	/**
+	 * Determines whether a given instance is legacy and should bypass using TinyMCE.
+	 *
+	 * @since 4.8.1
+	 *
+	 * @param array $instance {
+	 *     Instance data.
+	 *
+	 *     @type string      $text   Content.
+	 *     @type bool|string $filter Whether autop or content filters should apply.
+	 *     @type bool        $legacy Whether widget is in legacy mode.
+	 * }
+	 * @return bool Whether Text widget instance contains legacy data.
+	 */
+	public function is_legacy_instance( $instance ) {
+
+		// If the widget has been updated while in legacy mode, it stays in legacy mode.
+		if ( ! empty( $instance['legacy'] ) ) {
+			return true;
+		}
+
+		// If the widget has been added/updated in 4.8 then filter prop is 'content' and it is no longer legacy.
+		if ( isset( $instance['filter'] ) && 'content' === $instance['filter'] ) {
+			return false;
+		}
+
+		// If the text is empty, then nothing is preventing migration to TinyMCE.
+		if ( empty( $instance['text'] ) ) {
+			return false;
+		}
+
+		$wpautop = ! empty( $instance['filter'] );
+
+		// If auto-paragraphs are not enabled and there are line breaks, then ensure legacy mode.
+		if ( ! $wpautop && false === strpos( "\n", $instance['text'] ) ) {
+			return true;
+		}
+
+		// In the rare case that DOMDocument is not available we cannot reliably sniff content and so we assume legacy.
+		if ( ! class_exists( 'DOMDocument' ) ) {
+			// @codeCoverageIgnoreStart
+			return true;
+			// @codeCoverageIgnoreEnd
+		}
+
+		$doc = new DOMDocument();
+		$doc->loadHTML( sprintf(
+			'<html><head><meta charset="%s"></head><body>%s</body></html>',
+			esc_attr( get_bloginfo( 'charset' ) ),
+			$instance['text']
+		) );
+		$body = $doc->getElementsByTagName( 'body' )->item( 0 );
+
+		// See $allowedposttags.
+		$safe_elements_attributes = array(
+			'strong' => array(),
+			'em' => array(),
+			'b' => array(),
+			'i' => array(),
+			'u' => array(),
+			's' => array(),
+			'ul' => array(),
+			'ol' => array(),
+			'li' => array(),
+			'hr' => array(),
+			'abbr' => array(),
+			'acronym' => array(),
+			'code' => array(),
+			'dfn' => array(),
+			'a' => array(
+				'href' => true,
+			),
+			'img' => array(
+				'src' => true,
+				'alt' => true,
+			),
+		);
+		$safe_empty_elements = array( 'img', 'hr', 'iframe' );
+
+		foreach ( $body->getElementsByTagName( '*' ) as $element ) {
+			/** @var DOMElement $element */
+			$tag_name = strtolower( $element->nodeName );
+
+			// If the element is not safe, then the instance is legacy.
+			if ( ! isset( $safe_elements_attributes[ $tag_name ] ) ) {
+				return true;
+			}
+
+			// If the element is not safely empty and it has empty contents, then legacy mode.
+			if ( ! in_array( $tag_name, $safe_empty_elements, true ) && '' === trim( $element->textContent ) ) {
+				return true;
+			}
+
+			// If an attribute is not recognized as safe, then the instance is legacy.
+			foreach ( $element->attributes as $attribute ) {
+				/** @var DOMAttr $attribute */
+				$attribute_name = strtolower( $attribute->nodeName );
+
+				if ( ! isset( $safe_elements_attributes[ $tag_name ][ $attribute_name ] ) ) {
+					return true;
+				}
+			}
+		}
+
+		// Otherwise, the text contains no elements/attributes that TinyMCE could drop, and therefore the widget does not need legacy mode.
+		return false;
+	}
+
+	/**
 	 * Outputs the content for the current Text widget instance.
 	 *
 	 * @since 2.8.0
@@ -134,12 +242,20 @@ class WP_Widget_Text extends WP_Widget {
 		}
 
 		/*
-		 * Re-use legacy 'filter' (wpautop) property to now indicate content filters will always apply.
+		 * If the Text widget is in legacy mode, then a hidden input will indicate this
+		 * and the new content value for the filter prop will by bypassed. Otherwise,
+		 * re-use legacy 'filter' (wpautop) property to now indicate content filters will always apply.
 		 * Prior to 4.8, this is a boolean value used to indicate whether or not wpautop should be
 		 * applied. By re-using this property, downgrading WordPress from 4.8 to 4.7 will ensure
 		 * that the content for Text widgets created with TinyMCE will continue to get wpautop.
 		 */
-		$instance['filter'] = 'content';
+		if ( isset( $new_instance['legacy'] ) || isset( $old_instance['legacy'] ) || ( isset( $new_instance['filter'] ) && 'content' !== $new_instance['filter'] ) ) {
+			$instance['filter'] = ! empty( $new_instance['filter'] );
+			$instance['legacy'] = true;
+		} else {
+			$instance['filter'] = 'content';
+			unset( $instance['legacy'] );
+		}
 
 		return $instance;
 	}
@@ -160,6 +276,7 @@ class WP_Widget_Text extends WP_Widget {
 	 *
 	 * @since 2.8.0
 	 * @since 4.8.0 Form only contains hidden inputs which are synced with JS template.
+	 * @since 4.8.1 Restored original form to be displayed when in legacy mode.
 	 * @access public
 	 * @see WP_Widget_Visual_Text::render_control_template_scripts()
 	 *
@@ -175,9 +292,26 @@ class WP_Widget_Text extends WP_Widget {
 			)
 		);
 		?>
-		<input id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" class="title" type="hidden" value="<?php echo esc_attr( $instance['title'] ); ?>">
-		<input id="<?php echo $this->get_field_id( 'text' ); ?>" name="<?php echo $this->get_field_name( 'text' ); ?>" class="text" type="hidden" value="<?php echo esc_attr( $instance['text'] ); ?>">
-		<?php
+		<?php if ( ! $this->is_legacy_instance( $instance ) ) : ?>
+			<input id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" class="title" type="hidden" value="<?php echo esc_attr( $instance['title'] ); ?>">
+			<input id="<?php echo $this->get_field_id( 'text' ); ?>" name="<?php echo $this->get_field_name( 'text' ); ?>" class="text" type="hidden" value="<?php echo esc_attr( $instance['text'] ); ?>">
+		<?php else : ?>
+			<input name="<?php echo $this->get_field_name( 'legacy' ); ?>" type="hidden" class="legacy" value="true">
+			<p>
+				<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
+				<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>"/>
+			</p>
+			<div class="notice notice-info notice-alt">
+				<p><?php _e( 'This widget contains code that may be better used in the HTML Code widget. We recommend you use the HTML Code widget for this content.' ); ?></p>
+			</div>
+			<p>
+				<label for="<?php echo $this->get_field_id( 'text' ); ?>"><?php _e( 'Content:' ); ?></label>
+				<textarea class="widefat" rows="16" cols="20" id="<?php echo $this->get_field_id( 'text' ); ?>" name="<?php echo $this->get_field_name( 'text' ); ?>"><?php echo esc_textarea( $instance['text'] ); ?></textarea>
+			</p>
+			<p>
+				<input id="<?php echo $this->get_field_id( 'filter' ); ?>" name="<?php echo $this->get_field_name( 'filter' ); ?>" type="checkbox"<?php checked( ! empty( $instance['filter'] ) ); ?> />&nbsp;<label for="<?php echo $this->get_field_id( 'filter' ); ?>"><?php _e( 'Automatically add paragraphs' ); ?></label>
+			</p>
+		<?php endif;
 	}
 
 	/**

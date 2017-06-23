@@ -233,6 +233,11 @@ wp.textWidgets = ( function( $ ) {
 			return;
 		}
 
+		// Bypass using TinyMCE when widget is in legacy mode.
+		if ( widgetForm.find( '.legacy' ).length > 0 ) {
+			return;
+		}
+
 		widgetControl = new component.TextWidgetControl({
 			el: widgetContainer
 		});
