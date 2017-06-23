@@ -302,7 +302,7 @@ class WP_Widget_Text extends WP_Widget {
 				<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>"/>
 			</p>
 			<div class="notice notice-info notice-alt">
-				<p><?php _e( 'This widget contains code that may work better in the &#8220;HTML Code&#8221; widget. How about trying that widget instead?' ); ?></p>
+				<p><?php _e( 'This widget contains code that may work better in the &#8220;Custom HTML&#8221; widget. How about trying that widget instead?' ); ?></p>
 			</div>
 			<p>
 				<label for="<?php echo $this->get_field_id( 'text' ); ?>"><?php _e( 'Content:' ); ?></label>
