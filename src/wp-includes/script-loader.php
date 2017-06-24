@@ -608,8 +608,15 @@ function wp_default_scripts( &$scripts ) {
 		$scripts->add( 'media-audio-widget', "/wp-admin/js/widgets/media-audio-widget$suffix.js", array( 'media-widgets', 'media-audiovideo' ) );
 		$scripts->add( 'media-image-widget', "/wp-admin/js/widgets/media-image-widget$suffix.js", array( 'media-widgets' ) );
 		$scripts->add( 'media-video-widget', "/wp-admin/js/widgets/media-video-widget$suffix.js", array( 'media-widgets', 'media-audiovideo' ) );
-		$scripts->add( 'text-widgets', "/wp-admin/js/widgets/text-widgets$suffix.js", array( 'jquery', 'backbone', 'editor', 'wp-util' ) );
-		$scripts->add_inline_script( 'text-widgets', 'wp.textWidgets.init();', 'after' );
+		$scripts->add( 'text-widgets', "/wp-admin/js/widgets/text-widgets$suffix.js", array( 'jquery', 'backbone', 'editor', 'wp-util', 'wp-pointer' ) );
+		$exports = array(
+			'custom_html_pointer_dismissed' => is_user_logged_in() && in_array( 'text_widget_custom_html', explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) ) ),
+			'l10n' => array(
+				'pointer_heading' => __( 'New Custom HTML Widget' ),
+				'pointer_text' => __( 'Hey, did you hear we have a "Custom HTML" widget now? Check it out to add some custom code to your site!' ),
+			),
+		);
+		$scripts->add_inline_script( 'text-widgets', sprintf( 'wp.textWidgets.init( %s );', wp_json_encode( $exports ) ), 'after' );
 
 		$scripts->add( 'theme', "/wp-admin/js/theme$suffix.js", array( 'wp-backbone', 'wp-a11y' ), false, 1 );
 

@@ -3,7 +3,15 @@
 wp.textWidgets = ( function( $ ) {
 	'use strict';
 
-	var component = {};
+	var component = {
+		data: {
+			custom_html_pointer_dismissed: false,
+			l10n: {
+				pointer_heading: '',
+				pointer_text: ''
+			}
+		}
+	};
 
 	/**
 	 * Text widget control.
@@ -152,6 +160,28 @@ wp.textWidgets = ( function( $ ) {
 					if ( restoreTextMode ) {
 						switchEditors.go( id, 'toggle' );
 					}
+
+					$( '#' + id + '-html' ).one( 'click', function() {
+						var tabContainer;
+						if ( component.data.custom_html_pointer_dismissed ) {
+							return;
+						}
+						tabContainer = $( this ).parent();
+						tabContainer.pointer({
+							position: 'bottom',
+							align: 'right',
+							edge: 'right',
+							content: '<h3>' + component.data.l10n.pointer_heading + '</h3><p>' + component.data.l10n.pointer_text + '</p>',
+							close: function() {
+								wp.ajax.post( 'dismiss-wp-pointer', {
+									pointer: 'text_widget_custom_html'
+								});
+								component.data.custom_html_pointer_dismissed = true;
+							}
+						});
+						tabContainer.pointer( 'open' );
+						tabContainer.pointer( 'widget' ).css( 'z-index', 999999 ); // Default z-index of 9999 is not enough in Customizer.
+					});
 				};
 
 				if ( editor.initialized ) {
@@ -297,10 +327,13 @@ wp.textWidgets = ( function( $ ) {
 	 * When WordPress enqueues this script, it should have an inline script
 	 * attached which calls wp.textWidgets.init().
 	 *
+	 * @param {object} exports      Server exports.
+	 * @param {object} exports.l10n Translations.
 	 * @returns {void}
 	 */
-	component.init = function init() {
+	component.init = function init( exports ) {
 		var $document = $( document );
+		component.data = exports;
 		$document.on( 'widget-added', component.handleWidgetAdded );
 		$document.on( 'widget-synced widget-updated', component.handleWidgetUpdated );
 
